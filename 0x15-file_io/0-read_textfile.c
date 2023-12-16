@@ -1,43 +1,59 @@
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <font1.h>
-#include <stdlib.h>
+#include "main.h"
 
 /**
- * read_textfile - this read a text file and prints it to the posix stdo
+ * read_textfile -  reads a text file and prints it to
+ *                  the POSIX standard output
+ * @filename: name of the file we want to read from.
+ * @letters: numbers of letters it should read and print.
  *
- * @filename: name of the file to read
- * 
- * @letters: number of letters it should read and print 
- *
- * Return : actual number of letters it could read and print
+ * Return: actual number of letters it could read and print or
+ *         if the file can not be opened or read, return 0 or
+ *         if filename is NULL return 0 or
+ *         if write fails or does not write the expected
+ *         amount of bytes, return 0
  */
+
 
 ssize_t read_textfile(const char *filename, size_t letters)
 {
-	int fd;
-	ssize_t lenr, lenw;
-	char *buffer;
-	
+	int fd, r, w;
+	char *buff;
+
 	if (filename == NULL)
 		return (0);
-	fd = open(filename, O_RDONLY);
+
+	buff = malloc(sizeof(size_t) * letters);
+
+	if (buff == NULL)
+		return (0);
+
+	fd = open(filename, O_CREAT | O_RDONLY);
+
 	if (fd == -1)
-		return (0);
-	buffer = malloc(sizeof(char) * letters);
-	if (buffer == NULL)
 	{
-		close(fd);
+		free(buff);
 		return (0);
 	}
-	lenr = read(fd, buffer, letters);
+
+	r = read(fd, buff, letters);
+
+	if (r == -1)
+	{
+		free(buff);
+		return (0);
+	}
+
+	w = write(STDOUT_FILENO, buff, r);
+
+	if (w == -1)
+	{
+		free(buff);
+		return (0);
+	}
+
+	free(buff);
 	close(fd);
-	if (lenr == -1)
-	{
-		free(buffer);													return (0);
-	}
-	lenw = write(STDOUT_FILENO, buffer, lenr);
-														free(buffer);													if (lenr != lenw)
-															return (0);
-														return (lenw);
+
+	return (w);
+
 }
